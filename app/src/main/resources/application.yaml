@@ -1,16 +1,18 @@
-# MIGRATIONS
-ebean:
-  dbSchema: data
-  migration:
-    run: true
-
 datasource:
   default: ${APP_ENV}
   development:
-    username: sa
-    password: sa
-    url: "jdbc:h2:./database"
+    username: ""
+    password: ""
+    url: "jdbc:h2:./pages"
   production:
     username: ${JDBC_DATABASE_USERNAME}
     password: ${JDBC_DATABASE_PASSWORD}
     url: ${JDBC_DATABASE_URL}
+
+ebean:
+  ddl:
+    generate: true
+    #run: true
+  migration:
+    run: true
+
