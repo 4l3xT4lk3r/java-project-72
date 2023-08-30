@@ -12,7 +12,7 @@ datasource:
 ebean:
   ddl:
     generate: true
-    #run: true
+    run: true
   migration:
     run: true
 
