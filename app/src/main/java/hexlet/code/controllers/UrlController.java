@@ -8,6 +8,8 @@ import io.ebean.PagedList;
 
 import java.net.URL;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -23,8 +25,8 @@ public final class UrlController {
             ctx.redirect("/");
             return;
         }
-        if (new QUrl().name.equalTo(ctx.formParam("url")).findOne() == null) {
-            Url url = new Url(ctx.formParam("url"));
+        if (new QUrl().name.equalTo(removePathFromUrl(ctx.formParam("url"))).findOne() == null) {
+            Url url = new Url(removePathFromUrl(ctx.formParam("url")));
             url.save();
             ctx.status(200);
             ctx.sessionAttribute("flash", "Страница успешно добавлена");
@@ -75,6 +77,13 @@ public final class UrlController {
 
     private static void removeFlashMessage(Context ctx) {
         ctx.sessionAttribute("flash", null);
+    }
+
+    private static String removePathFromUrl(String url) {
+        Pattern pattern = Pattern.compile("https?://[^/]+");
+        Matcher matcher = pattern.matcher(url);
+        matcher.find();
+        return matcher.group();
     }
 
 }
