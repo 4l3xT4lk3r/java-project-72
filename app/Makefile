@@ -3,4 +3,4 @@ run-dev:
 run-prod:
 	APP_ENV=production ./gradlew run
 report:
-        @./gradlew jacocoTestReport
+	@./gradlew jacocoTestReport
