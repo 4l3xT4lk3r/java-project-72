@@ -6,6 +6,7 @@ import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import io.ebean.PagedList;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -14,31 +15,25 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public final class UrlController {
-
     public static Handler createUrl = ctx -> {
         try {
             new URL(ctx.formParam("url"));
-        } catch (Exception exception) {
+            if (new QUrl().name.equalTo(removePathFromUrl(ctx.formParam("url"))).findOne() == null) {
+                Url url = new Url(removePathFromUrl(ctx.formParam("url")));
+                url.save();
+                ctx.sessionAttribute("flash", "Страница успешно добавлена");
+                ctx.sessionAttribute("flashtype", "alert-success");
+            } else {
+                ctx.sessionAttribute("flash", "Страница уже существует");
+                ctx.sessionAttribute("flashtype", "alert-warning");
+            }
+            ctx.redirect("/urls");
+        } catch (MalformedURLException exception) {
             ctx.status(422);
             ctx.sessionAttribute("flash", "Некорректный URL");
             ctx.sessionAttribute("flashtype", "alert-danger");
-            ctx.redirect("/");
-            return;
+            ctx.render("/index.html");
         }
-        if (new QUrl().name.equalTo(removePathFromUrl(ctx.formParam("url"))).findOne() == null) {
-            Url url = new Url(removePathFromUrl(ctx.formParam("url")));
-            url.save();
-            ctx.status(200);
-            ctx.sessionAttribute("flash", "Страница успешно добавлена");
-            ctx.sessionAttribute("flashtype", "alert-success");
-            ctx.redirect("/urls");
-        } else {
-            ctx.status(200);
-            ctx.sessionAttribute("flash", "Страница уже существует");
-            ctx.sessionAttribute("flashtype", "alert-warning");
-            ctx.redirect("/urls");
-        }
-
     };
 
     public static Handler listUrls = ctx -> {
