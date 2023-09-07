@@ -1,10 +1,14 @@
 package hexlet.code.controllers;
 
 import hexlet.code.domains.Url;
+import hexlet.code.domains.UrlCheck;
 import hexlet.code.domains.query.QUrl;
+import hexlet.code.domains.query.QUrlCheck;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import io.ebean.PagedList;
+import kong.unirest.HttpResponse;
+import kong.unirest.Unirest;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -41,10 +45,21 @@ public final class UrlController {
         int rowsPerPage = 10;
 
         PagedList<Url> pagedUrls = new QUrl()
+                .urlChecks
+                .fetch(QUrlCheck.alias().url).setMaxRows(page * rowsPerPage)
+                .setMaxRows(rowsPerPage)
+                .orderBy()
+                .id
+                .asc()
+                .select(QUrl.alias().id, QUrl.alias().name, QUrlCheck.alias().createdAt, QUrlCheck.alias().statusCode)
+                .findPagedList();
+
+        PagedList<Url> pagedUrls2 = new QUrl()
                 .setFirstRow(page * rowsPerPage)
                 .setMaxRows(rowsPerPage)
                 .orderBy()
-                .id.asc()
+                .id
+                .asc()
                 .findPagedList();
 
         List<Url> urls = pagedUrls.getList();
@@ -66,7 +81,35 @@ public final class UrlController {
     public static Handler showUrl = ctx -> {
         int id = ctx.pathParamAsClass("id", Integer.class).getOrDefault(null);
         Url url = new QUrl().id.equalTo(id).findOne();
+        List<UrlCheck> urlChecks = new QUrlCheck().url
+                .equalTo(url)
+                .orderBy()
+                .id
+                .desc()
+                .findList();
+        ctx.attribute("urlChecks", urlChecks);
         ctx.attribute("url", url);
+        ctx.render("urls/show.html");
+    };
+
+    public static Handler checkUrl = ctx -> {
+        int id = ctx.pathParamAsClass("id", Integer.class).getOrDefault(null);
+        Url url = new QUrl().id.equalTo(id).findOne();
+
+        Unirest.head(url.getName()).asString();
+        HttpResponse<String> response = Unirest.get(url.getName()).asString();
+
+        int code = response.getStatus();
+        String body = response.getBody();
+        String title = getBodyData(body, "(?i)<title[^>]*>(.*)</title>");
+        String description = getBodyData(body, "(?i)<meta name=\\\"description\\\" content=\\\"([^\\\"]*)");
+        String h1 = getBodyData(body, "(?i)<h1[^>]*>([^<]+)");
+
+        UrlCheck urlCheck = new UrlCheck(code, title, h1, description, url);
+        urlCheck.save();
+
+        ctx.attribute("url", url);
+        ctx.redirect("/urls/" + id);
         ctx.render("urls/show.html");
     };
 
@@ -79,6 +122,15 @@ public final class UrlController {
         Matcher matcher = pattern.matcher(url);
         matcher.find();
         return matcher.group();
+    }
+
+    private static String getBodyData(String body, String regex) {
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(body);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return "No data";
     }
 
 }

@@ -13,6 +13,6 @@ ebean:
   ddl:
     generate: true
     run: true
-  migration:
-    run: true
+  #migration:
+   # run: true
 
