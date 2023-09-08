@@ -2,17 +2,22 @@ package hexlet.code;
 
 
 import hexlet.code.domains.Url;
+import hexlet.code.domains.UrlCheck;
 import io.ebean.DB;
 import io.ebean.Database;
 import io.javalin.Javalin;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import hexlet.code.domains.query.QUrl;
+
+import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -22,18 +27,28 @@ public final class AppTest {
     private static String baseUrl;
     private static Database database;
 
+    private static MockWebServer webServer;
+
+    private static String webServerPage;
+
     @BeforeAll
-    public static void beforeAll() {
+    public static void beforeAll() throws Exception {
         app = App.getApp();
         app.start(0);
         int port = app.port();
         baseUrl = "http://localhost:" + port;
         database = DB.getDefault();
+
+        webServer = new MockWebServer();
+        webServer.start();
+        webServer.enqueue(new MockResponse());
+        webServerPage = webServer.url("/").toString().replaceAll(".$", "");
     }
 
     @AfterAll
-    public static void afterAll() {
+    public static void afterAll() throws Exception {
         app.stop();
+        webServer.shutdown();
     }
 
     @BeforeEach
@@ -117,4 +132,37 @@ public final class AppTest {
         assertThat(body).contains("http://mail.ru");
         assertThat(body).contains("Дата создания");
     }
+
+    @Test
+    public void testCheckUrl() {
+        MockResponse response = new MockResponse()
+                .addHeader("Content-Type", "application/html; charset=utf-8")
+                .setBody("""
+                        <html><head><title>CISCO</title></head>
+                        <body><h1>ROUTING</h1></body></html>""")
+                .setResponseCode(200);
+        webServer.enqueue(response);
+
+        Unirest.post(baseUrl + "/urls").field("url", webServerPage).asEmpty();
+        HttpResponse<String> getResponse = Unirest.get(baseUrl + "/urls").asString();
+        String body = getResponse.getBody();
+        assertThat(body).contains(webServerPage);
+
+        HttpResponse postResponse = Unirest.post(baseUrl + "/urls/3/checks").asEmpty();
+        assertThat(postResponse.getStatus()).isEqualTo(302);
+
+        getResponse = Unirest.get(baseUrl + "/urls/3").asString();
+        assertThat(getResponse.getStatus()).isEqualTo(200);
+        body = getResponse.getBody();
+        assertThat(body).contains(webServerPage);
+        assertThat(body).contains("CISCO");
+        assertThat(body).contains("ROUTING");
+
+        Url url = new QUrl().name.equalTo(webServerPage).findOne();
+        assertThat(url).isNotNull();
+
+        List<UrlCheck> urlChecks = new QUrl().urlChecks.fetch().name.equalTo(webServerPage).findIds();
+        assertThat(urlChecks.size()).isGreaterThan(0);
+    }
+
 }
