@@ -4,6 +4,9 @@ ebean:
     platform: h2
     ddlMode: dropCreate
     dbName: test
+    username: ""
+    password: ""
+    url: "jdbc:h2:mem:pages"
 #    h2:
 #      url: "jdbc:h2:./pages"
 #  ddl:
