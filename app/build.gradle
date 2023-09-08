@@ -73,4 +73,4 @@ task generateMigrations(type: JavaExec) {
     mainClass = 'hexlet.code.MigrationGenerator'
 }
 
-println System.getenv().getOrDefault("APP_ENV", "development")
+System.getenv("APP_ENV") ?: "development"
