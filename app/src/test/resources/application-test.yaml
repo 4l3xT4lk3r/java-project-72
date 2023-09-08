@@ -4,8 +4,10 @@ ebean:
     platform: h2
     ddlMode: dropCreate
     dbName: test
-  ddl:
-    run: true
-    generate: true
-    migration:
-      run: true
+#    h2:
+#      url: "jdbc:h2:./pages"
+#  ddl:
+#    run: true
+#    generate: true
+#    migration:
+#      run: true
