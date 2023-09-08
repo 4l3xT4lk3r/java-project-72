@@ -31,5 +31,4 @@ make run-dev
 
 ```bash
 make run-prod
-# Open in browser http://localhost:8080
 ```
