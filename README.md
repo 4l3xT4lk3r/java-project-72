@@ -13,9 +13,23 @@
 * Gradle 8.2
 * GNU Make
 
-## Run server
+## Preparation
+
+```bash
+git clone repo
+cd app
+```
+
+## Run test server
 
 ```bash
 make run-dev
+# Open in browser http://localhost:8080
+```
+
+## Run prod server
+
+```bash
+make run-prod
 # Open in browser http://localhost:8080
 ```
