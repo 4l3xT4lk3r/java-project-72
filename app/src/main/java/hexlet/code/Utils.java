@@ -17,13 +17,4 @@ public final class Utils {
         return matcher.group();
     }
 
-    public static String getBodyData(String body, String regex) {
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(body);
-        if (matcher.find()) {
-            return matcher.group(1);
-        }
-        return "No data";
-    }
-
 }

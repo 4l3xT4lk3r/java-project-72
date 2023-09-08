@@ -9,6 +9,9 @@ import io.javalin.http.Handler;
 import io.ebean.PagedList;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -88,14 +91,19 @@ public final class UrlController {
         Url url = new QUrl().id.equalTo(id).findOne();
 
         try {
-            Unirest.head(url.getName()).asString();
-            HttpResponse<String> response = Unirest.get(url.getName()).asString();
+            //Unirest.config().setT
 
+            Unirest.head(url.getName()).connectTimeout(3000).asString();
+            HttpResponse<String> response = Unirest.get(url.getName()).asString();
             int code = response.getStatus();
+
             String body = response.getBody();
-            String title = Utils.getBodyData(body, "(?i)<title[^>]*>(.*)</title>");
-            String description = Utils.getBodyData(body, "(?i)<meta name=\\\"description\\\" content=\\\"([^\\\"]*)");
-            String h1 = Utils.getBodyData(body, "(?i)<h1[^>]*>([^<]+)");
+            Document document = Jsoup.parse(body);
+            String title = document.title();
+            Elements h1List = document.select("h1");
+            String h1 = (!h1List.isEmpty()) ? h1List.get(0).ownText() : "no data";
+            Elements metaList = document.select("meta[name=description]");
+            String description = (!metaList.isEmpty()) ? metaList.get(0).attr("content") : "no data";
 
             UrlCheck urlCheck = new UrlCheck(code, title, h1, description, url);
             urlCheck.save();
@@ -110,6 +118,5 @@ public final class UrlController {
             ctx.redirect("/urls/" + id);
         }
     };
-
 
 }
