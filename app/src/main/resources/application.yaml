@@ -5,10 +5,11 @@ datasource:
     password: sa
     url: "jdbc:h2:./database"
   production:
-    username: sa
-    password: sa
+    username: ${JDBC_DATABASE_USERNAME}
+    password: ${JDBC_DATABASE_PASSWORD}
     url: ${JDBC_DATABASE_URL}
 
 ebean:
-  migration:
+  ddl:
     run: true
+    generate: true
