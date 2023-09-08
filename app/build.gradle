@@ -4,6 +4,7 @@ plugins {
     id 'checkstyle'
     id 'io.ebean' version '13.17.4'
     id 'jacoco'
+    id 'com.adarshr.test-logger' version '3.2.0'
 }
 
 group = 'hexlet.code'
@@ -57,6 +58,10 @@ jacocoTestReport {
 
 test {
     useJUnitPlatform()
+}
+
+testlogger {
+    showStandardStreams true
 }
 
 application {
