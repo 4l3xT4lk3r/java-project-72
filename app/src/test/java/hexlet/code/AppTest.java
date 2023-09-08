@@ -43,6 +43,8 @@ public final class AppTest {
         webServer.start();
         webServer.enqueue(new MockResponse());
         webServerPage = webServer.url("/").toString().replaceAll(".$", "");
+
+
     }
 
     @AfterAll
