@@ -92,7 +92,6 @@ public final class UrlController {
         Url url = new QUrl().id.equalTo(id).findOne();
 
         try {
-            //Unirest.config().setT
 
             Unirest.head(url.getName()).connectTimeout(3000).asString();
             HttpResponse<String> response = Unirest.get(url.getName()).asString();
