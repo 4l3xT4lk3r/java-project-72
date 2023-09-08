@@ -11,11 +11,12 @@ import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
+import org.jsoup.nodes.Element;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -100,10 +101,12 @@ public final class UrlController {
             String body = response.getBody();
             Document document = Jsoup.parse(body);
             String title = document.title();
-            Elements h1List = document.select("h1");
-            String h1 = (!h1List.isEmpty()) ? h1List.get(0).ownText() : "no data";
-            Elements metaList = document.select("meta[name=description]");
-            String description = (!metaList.isEmpty()) ? metaList.get(0).attr("content") : "no data";
+
+            Element element = document.selectFirst("h1");
+            String h1 = (!Objects.isNull(element)) ? element.ownText() : "no data";
+
+            element = document.selectFirst("meta[name=description]");
+            String description = (!Objects.isNull(element)) ? element.attr("content") : "no data";
 
             UrlCheck urlCheck = new UrlCheck(code, title, h1, description, url);
             urlCheck.save();
