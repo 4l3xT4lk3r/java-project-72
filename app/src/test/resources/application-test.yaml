@@ -1,6 +1,7 @@
 ebean:
   test:
-    platform: postgres
+    useDocker: false
+    platform: h2
     ddlMode: dropCreate
     dbName: test
   ddl:
