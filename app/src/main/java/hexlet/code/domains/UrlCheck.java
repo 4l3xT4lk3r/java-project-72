@@ -3,12 +3,7 @@ package hexlet.code.domains;
 import io.ebean.Model;
 import io.ebean.annotation.WhenCreated;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.Id;
-import javax.persistence.Lob;
-import javax.persistence.ManyToOne;
-import javax.persistence.JoinColumn;
+import javax.persistence.*;
 import java.time.Instant;
 
 @Entity
@@ -16,6 +11,7 @@ import java.time.Instant;
 public final class UrlCheck extends Model {
     @Id
     private int id;
+    @Column(name = "status_code")
     private int statusCode;
     private String title;
     private String h1;
