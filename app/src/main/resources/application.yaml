@@ -1,5 +1,5 @@
 datasource:
-  default: ${APP_ENV}
+  default: development
   development:
     username: sa
     password: sa
@@ -10,6 +10,5 @@ datasource:
     url: ${JDBC_DATABASE_URL}
 
 ebean:
-  ddl:
+  migration:
     run: true
-    generate: true
