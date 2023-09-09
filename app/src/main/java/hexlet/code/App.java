@@ -25,7 +25,7 @@ public class App {
     }
 
     private static String getMode() {
-        return System.getenv().getOrDefault("APP_ENV", "development");
+        return System.getenv().getOrDefault("APP_ENV", "production");
     }
 
     private static void setMode() {
