@@ -1,7 +1,7 @@
 datasource:
   db:
     username: sa
-    password: sa
+    password: ""
     url: jdbc:h2:mem:project
 
 ebean:
