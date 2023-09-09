@@ -1,18 +1,30 @@
 datasource:
-  default: ${APP_ENV}
-  development:
-    username: ""
-    password: ""
-    url: "jdbc:h2:mem:project"
-  production:
-    username: ${JDBC_DATABASE_USERNAME}
-    password: ${JDBC_DATABASE_PASSWORD}
-    url: ${JDBC_DATABASE_URL}
+  db:
+    username: sa
+    password: sa
+    url: jdbc:h2:mem:project
 
-#ebean:
-#  migration:
-#    run: true
 ebean:
   ddl:
     run: true
     generate: true
+
+
+#datasource:
+#  default: ${APP_ENV}
+#  development:
+#    username: ""
+#    password: ""
+#    url: "jdbc:h2:mem:project"
+#  production:
+#    username: ${JDBC_DATABASE_USERNAME}
+#    password: ${JDBC_DATABASE_PASSWORD}
+#    url: ${JDBC_DATABASE_URL}
+#
+##ebean:
+##  migration:
+##    run: true
+#ebean:
+#  ddl:
+#    run: true
+#    generate: true
