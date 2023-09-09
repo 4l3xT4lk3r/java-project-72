@@ -15,7 +15,7 @@ import java.util.List;
 @Table(name = "urls")
 public final class Url extends Model {
     @Id
-    private int id;
+    private long id;
     private String name;
     @WhenCreated
     private Instant createdAt;
@@ -25,7 +25,7 @@ public final class Url extends Model {
         this.name = name;
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 

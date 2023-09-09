@@ -17,12 +17,12 @@ import java.time.Instant;
 @Table(name = "url_checks")
 public final class UrlCheck extends Model {
     @Id
-    private int id;
+    private long id;
     @Column(name = "status_code")
     private int statusCode;
     private String title;
     private String h1;
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String description;
     @ManyToOne
     @JoinColumn(name = "url_id", referencedColumnName = "id")
@@ -38,7 +38,7 @@ public final class UrlCheck extends Model {
         this.url = url;
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
