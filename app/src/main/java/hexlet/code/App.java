@@ -25,11 +25,20 @@ public class App {
     }
 
     private static String getMode() {
-        return System.getenv().getOrDefault("APP_ENV", "production");
+        return System.getenv().getOrDefault("APP_ENV", "development");
     }
+
+    private static String getJdbcUrl() {
+        return System.getenv().getOrDefault("JDBC_DATABASE_URL", "jdbc:h2:mem:project");
+    }
+
 
     private static void setMode() {
         System.setProperty("APP_ENV", getMode());
+    }
+
+    private static void setJdbcUrl() {
+        System.setProperty("JDBC_DATABASE_URL", getJdbcUrl());
     }
 
     private static boolean isProduction() {
@@ -68,6 +77,7 @@ public class App {
 
     public static Javalin getApp() {
         setMode();
+        setJdbcUrl();
         Javalin app = Javalin.create(config -> {
             if (!isProduction()) {
                 config.plugins.enableDevLogging();
