@@ -9,6 +9,10 @@ datasource:
     password: ${JDBC_DATABASE_PASSWORD}
     url: ${JDBC_DATABASE_URL}
 
+#ebean:
+#  migration:
+#    run: true
 ebean:
-  migration:
+  ddl:
     run: true
+    generate: true
