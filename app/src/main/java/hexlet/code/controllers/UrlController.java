@@ -52,7 +52,7 @@ public final class UrlController {
         PagedList<Url> pagedUrls = new QUrl()
                 .select(u.id, u.name)
                 .urlChecks
-                .fetch(uc.createdAt,uc.statusCode)
+                .fetch(uc.createdAt, uc.statusCode)
                 .setMaxRows(rowsPerPage)
                 .orderBy()
                 .id
