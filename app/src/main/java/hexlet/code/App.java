@@ -28,6 +28,10 @@ public class App {
         return System.getenv().getOrDefault("APP_ENV", "development");
     }
 
+    private static void setMode() {
+        System.setProperty("APP_ENV", getMode());
+    }
+
     private static boolean isProduction() {
         return getMode().equals("production");
     }
@@ -63,6 +67,7 @@ public class App {
     }
 
     public static Javalin getApp() {
+        setMode();
         Javalin app = Javalin.create(config -> {
             if (!isProduction()) {
                 config.plugins.enableDevLogging();
