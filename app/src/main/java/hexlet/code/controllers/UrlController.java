@@ -95,11 +95,8 @@ public final class UrlController {
         Url url = new QUrl().id.equalTo(id).findOne();
 
         try {
-
-            Unirest.head(url.getName()).asString();
             HttpResponse<String> response = Unirest.get(url.getName()).asString();
             int code = response.getStatus();
-
             String body = response.getBody();
             Document document = Jsoup.parse(body);
             String title = document.title();
