@@ -96,7 +96,7 @@ public final class UrlController {
 
         try {
 
-            Unirest.head(url.getName()).connectTimeout(3000).asString();
+            Unirest.head(url.getName()).asString();
             HttpResponse<String> response = Unirest.get(url.getName()).asString();
             int code = response.getStatus();
 
