@@ -38,10 +38,8 @@ public final class AppTest {
         int port = app.port();
         baseUrl = "http://localhost:" + port;
         database = DB.getDefault();
-
         webServer = new MockWebServer();
         webServer.start();
-        //webServer.enqueue(new MockResponse());
         webServerPage = webServer.url("/").toString().replaceAll(".$", "");
     }
 
@@ -53,7 +51,12 @@ public final class AppTest {
 
     @BeforeEach
     void beforeEach() {
-        database.script().run("/truncate.sql");
+        System.out.println(database.platform().name());
+        if (database.platform().name().equals("H2")) {
+            database.script().run("/truncate_h2.sql");
+        } else {
+            database.script().run("/truncate.sql");
+        }
         database.script().run("/seed.sql");
     }
 
