@@ -1,13 +1,23 @@
 package hexlet.code;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import hexlet.code.controllers.RootController;
 import hexlet.code.controllers.UrlController;
+import hexlet.code.repositories.BaseRepository;
 import io.javalin.Javalin;
 import io.javalin.rendering.template.JavalinThymeleaf;
 import nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.extras.java8time.dialect.Java8TimeDialect;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.stream.Collectors;
 
 import static io.javalin.apibuilder.ApiBuilder.path;
 import static io.javalin.apibuilder.ApiBuilder.post;
@@ -33,14 +43,14 @@ public class App {
     }
 
 
-    private static void setMode() {
-        System.setProperty("APP_ENV", getMode());
-    }
+//    private static void setMode() {
+//        System.setProperty("APP_ENV", getMode());
+//    }
 
-    private static void setJdbcUrl() {
-        System.setProperty("JDBC_DATABASE_URL", getJdbcUrl());
-    }
-
+    //    private static void setJdbcUrl() {
+//        System.setProperty("JDBC_DATABASE_URL", getJdbcUrl());
+//    }
+//
     private static boolean isProduction() {
         return getMode().equals("production");
     }
@@ -61,6 +71,19 @@ public class App {
         });
     }
 
+    public static void dbInit() throws IOException, SQLException {
+        HikariConfig hikariConfig = new HikariConfig();
+        hikariConfig.setJdbcUrl(getJdbcUrl());
+        BaseRepository.dataSource = new HikariDataSource(hikariConfig);
+        File file = new File("src/main/resources/schema.sql");
+        String sql = Files.lines(file.toPath())
+                .collect(Collectors.joining("\n"));
+        try (var connection = BaseRepository.dataSource.getConnection();
+             var statement = connection.createStatement()) {
+            statement.execute(sql);
+        }
+    }
+
     private static TemplateEngine getTemplateEngine() {
         TemplateEngine templateEngine = new TemplateEngine();
 
@@ -76,8 +99,14 @@ public class App {
     }
 
     public static Javalin getApp() {
-        setMode();
-        setJdbcUrl();
+        try {
+            dbInit();
+        }catch (SQLException sqlException){
+            sqlException.printStackTrace();
+        }catch (IOException ioException){
+            ioException.printStackTrace();
+        }
+
         Javalin app = Javalin.create(config -> {
             if (!isProduction()) {
                 config.plugins.enableDevLogging();

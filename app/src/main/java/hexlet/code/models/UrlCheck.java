@@ -1,40 +1,36 @@
-package hexlet.code.domains;
-
-import io.ebean.Model;
-import io.ebean.annotation.WhenCreated;
-
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.Id;
-import javax.persistence.Column;
-import javax.persistence.ManyToOne;
-import javax.persistence.JoinColumn;
+package hexlet.code.models;
 
 import java.time.Instant;
 
-@Entity
-@Table(name = "url_checks")
-public final class UrlCheck extends Model {
-    @Id
+
+public final class UrlCheck {
     private long id;
-    @Column(name = "status_code")
     private int statusCode;
     private String title;
     private String h1;
-    @Column(columnDefinition = "TEXT")
     private String description;
-    @ManyToOne
-    @JoinColumn(name = "url_id", referencedColumnName = "id")
-    private Url url;
-    @WhenCreated
+    private long url_id;
+
     private Instant createdAt;
 
-    public UrlCheck(int statusCode, String title, String h1, String description, Url url) {
+    public UrlCheck(int statusCode, String title, String h1, String description, long url_id) {
         this.statusCode = statusCode;
         this.title = title;
         this.h1 = h1;
         this.description = description;
-        this.url = url;
+        this.url_id = url_id;
+    }
+    public UrlCheck(int statusCode, String title, String h1, String description, long url_id, Instant createdAt) {
+        this.statusCode = statusCode;
+        this.title = title;
+        this.h1 = h1;
+        this.description = description;
+        this.url_id = url_id;
+        this.createdAt = createdAt;
+    }
+
+    public long getUrl_id() {
+        return url_id;
     }
 
     public long getId() {
@@ -59,5 +55,9 @@ public final class UrlCheck extends Model {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 }

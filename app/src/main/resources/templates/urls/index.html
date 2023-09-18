@@ -18,15 +18,10 @@
                 <td th:text="*{id}"></td>
                 <td><a th:text="*{getName()}" th:href="@{/urls/{id}(id=*{getId()})}"></a></td>
                 <td>
-                    <span th:if="*{getUrlChecks().size() > 0}"
-                          th:text="*{#temporals.format(getUrlChecks().get(getUrlChecks().size()-1).getCreatedAt(),
-                          'dd/MM/yyyy HH:mm:ss')}">
-                    </span>
+
                 </td>
                 <td>
-                    <span th:if="*{getUrlChecks().size() > 0}"
-                          th:text="*{getUrlChecks().get(getUrlChecks().size()-1).getStatusCode()}">
-                    </span>
+
                 </td>
             </tr>
         </tbody>

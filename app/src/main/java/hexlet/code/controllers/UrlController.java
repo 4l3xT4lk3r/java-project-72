@@ -1,32 +1,34 @@
 package hexlet.code.controllers;
 
 import hexlet.code.Utils;
-import hexlet.code.domains.Url;
-import hexlet.code.domains.UrlCheck;
-import hexlet.code.domains.query.QUrl;
-import hexlet.code.domains.query.QUrlCheck;
+import hexlet.code.models.Url;
+import hexlet.code.models.UrlCheck;
+import hexlet.code.repositories.UrlCheckRepository;
+import hexlet.code.repositories.UrlRepository;
 import io.javalin.http.Handler;
-import io.ebean.PagedList;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
+import org.jsoup.nodes.Document;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public final class UrlController {
     public static Handler createUrl = ctx -> {
         try {
             new URL(ctx.formParam("url"));
-            if (new QUrl().name.equalTo(Utils.removePathFromUrl(ctx.formParam("url"))).findOne() == null) {
+            if (UrlRepository.find((ctx.formParam("url"))).isEmpty()) {
                 Url url = new Url(Utils.removePathFromUrl(ctx.formParam("url")));
-                url.save();
+                UrlRepository.save(new Url((ctx.formParam("url"))));
                 ctx.sessionAttribute("flash", "Страница успешно добавлена");
                 ctx.sessionAttribute("flashtype", "alert-success");
             } else {
@@ -46,23 +48,10 @@ public final class UrlController {
         int page = ctx.queryParamAsClass("page", Integer.class).getOrDefault(1) - 1;
         int rowsPerPage = 10;
 
-        QUrl u = QUrl.alias();
-        QUrlCheck uc = QUrlCheck.alias();
-
-        PagedList<Url> pagedUrls = new QUrl()
-                .select(u.id, u.name)
-                .urlChecks
-                .fetch(uc.createdAt, uc.statusCode)
-                .setMaxRows(rowsPerPage)
-                .orderBy()
-                .id
-                .asc()
-                .findPagedList();
-
-        List<Url> urls = pagedUrls.getList();
-
-        int lastPage = pagedUrls.getTotalPageCount() + 1;
-        int currentPage = pagedUrls.getPageIndex() + 1;
+        List<Url> urls = UrlRepository.getEntities(rowsPerPage, page);
+        
+        int lastPage = urls.size() + 1;
+        int currentPage = page;
         List<Integer> pages = IntStream
                 .range(1, lastPage)
                 .boxed()
@@ -76,14 +65,11 @@ public final class UrlController {
     };
 
     public static Handler showUrl = ctx -> {
-        int id = ctx.pathParamAsClass("id", Integer.class).getOrDefault(null);
-        Url url = new QUrl().id.equalTo(id).findOne();
-        List<UrlCheck> urlChecks = new QUrlCheck().url
-                .equalTo(url)
-                .orderBy()
-                .id
-                .desc()
-                .findList();
+        long id = ctx.pathParamAsClass("id", Integer.class).getOrDefault(null);
+
+        Url url = UrlRepository.find(id).get();
+        List<UrlCheck> urlChecks = UrlCheckRepository.getEntities(id);
+
         ctx.attribute("urlChecks", urlChecks);
         ctx.attribute("url", url);
         ctx.render("urls/show.html");
@@ -91,8 +77,8 @@ public final class UrlController {
     };
 
     public static Handler checkUrl = ctx -> {
-        int id = ctx.pathParamAsClass("id", Integer.class).getOrDefault(null);
-        Url url = new QUrl().id.equalTo(id).findOne();
+        long id = ctx.pathParamAsClass("id", Integer.class).getOrDefault(null);
+        Url url = UrlRepository.find(id).get();
 
         try {
             HttpResponse<String> response = Unirest.get(url.getName()).asString();
@@ -107,8 +93,8 @@ public final class UrlController {
             element = document.selectFirst("meta[name=description]");
             String description = (!Objects.isNull(element)) ? element.attr("content") : "no data";
 
-            UrlCheck urlCheck = new UrlCheck(code, title, h1, description, url);
-            urlCheck.save();
+            UrlCheck urlCheck = new UrlCheck(code, title, h1, description, id);
+            UrlCheckRepository.save(urlCheck);
 
             ctx.attribute("url", url);
             ctx.sessionAttribute("flash", "Страница успешно проверена");

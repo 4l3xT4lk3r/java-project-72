@@ -1,8 +1,8 @@
 package hexlet.code;
 
 
-import hexlet.code.domains.Url;
-import hexlet.code.domains.UrlCheck;
+import hexlet.code.models.Url;
+import hexlet.code.models.UrlCheck;
 import io.ebean.DB;
 import io.ebean.Database;
 import io.javalin.Javalin;
@@ -15,7 +15,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import hexlet.code.domains.query.QUrl;
+import hexlet.code.models.query.QUrl;
 
 import java.util.List;
 
