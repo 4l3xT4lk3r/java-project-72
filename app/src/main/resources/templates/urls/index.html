@@ -17,12 +17,9 @@
             <tr th:each="url : ${urls}" th:object="${url}">
                 <td th:text="*{id}"></td>
                 <td><a th:text="*{getName()}" th:href="@{/urls/{id}(id=*{getId()})}"></a></td>
-                <td>
-
-                </td>
-                <td>
-
-                </td>
+                <td th:text="${urlChecks.get(url) != null } ?
+                ${#temporals.format(urlChecks.get(url).getCreatedAt(), 'dd/MM/yyyy HH:mm:ss')}: '' "></td>
+                <td th:text="${urlChecks.get(url) != null } ? ${urlChecks.get(url).getStatusCode()}: '' "></td>
             </tr>
         </tbody>
     </table>
