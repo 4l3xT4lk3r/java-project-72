@@ -23,15 +23,12 @@
             </tr>
         </tbody>
     </table>
-    <nav aria-label="Page navigation" th:if="${#lists.size(pages)}">
+    <nav aria-label="Page navigation">
         <ul class="pagination justify-content-center mt-5">
-            <li th:class="'page-item' + ${currentPage <= 1 ? ' disabled' : ''}">
+            <li th:class="'page-item' + ${currentPage <= 1 ? ' disabled' : '' }">
                 <a class="page-link" th:href="@{/urls(page=${currentPage - 1})}">Previous</a>
             </li>
-            <li th:each="page : ${pages}" th:class="'page-item' + ${currentPage == page ? ' active' : ''}">
-                <a class="page-link" th:href="@{/urls(page=${page})}" th:text="${page}"></a>
-            </li>
-            <li th:class="'page-item' + ${currentPage >= #lists.size(pages) ? ' disabled' : ''}">
+            <li th:class="'page-item' + ${currentPage == lastPage ? ' disabled' : '' }">
                 <a class="page-link" th:href="@{/urls(page=${currentPage + 1},)}">Next</a>
             </li>
         </ul>

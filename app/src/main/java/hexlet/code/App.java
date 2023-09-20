@@ -15,7 +15,6 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.stream.Collectors;
 

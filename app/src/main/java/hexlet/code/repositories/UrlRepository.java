@@ -74,4 +74,17 @@ public class UrlRepository extends BaseRepository {
             return result;
         }
     }
+
+    public static int getEntitiesCount() throws SQLException {
+        String sql = "SELECT COUNT(*) AS COUNT FROM urls";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            ResultSet resultSet = stmt.executeQuery();
+            int count = 0;
+            if (resultSet.next()) {
+                count += resultSet.getInt(1);
+            }
+            return count;
+        }
+    }
 }

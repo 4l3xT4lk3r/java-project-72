@@ -43,11 +43,18 @@ public final class UrlController {
     };
 
     public static Handler listUrls = ctx -> {
-        int page = ctx.queryParamAsClass("page", Integer.class).getOrDefault(1) - 1;
+        int page = ctx.queryParamAsClass("page", Integer.class).getOrDefault(1);
         int rowsPerPage = 10;
+        int urlsCount = UrlRepository.getEntitiesCount();
 
-        List<Url> urls = UrlRepository.getEntities(rowsPerPage, page);
-        Map<Url,UrlCheck> urlChecks = new HashMap<>();
+        int lastPage = urlsCount / rowsPerPage;
+        if (urlsCount % rowsPerPage > 0) lastPage++;
+
+        if (page < 1) page = 1;
+        if (page > lastPage ) page = lastPage;
+
+        List<Url> urls = UrlRepository.getEntities(rowsPerPage, (page - 1) * 10);
+        Map<Url, UrlCheck> urlChecks = new HashMap<>();
 
         for (Url u : urls) {
             Optional<UrlCheck> urlCheck = UrlCheckRepository.findLastCheck(u.getId());
@@ -55,19 +62,10 @@ public final class UrlController {
                 urlChecks.put(u, urlCheck.get());
             }
         }
-
-
-        int lastPage = urls.size() + 1;
-        int currentPage = page;
-        List<Integer> pages = IntStream
-                .range(1, lastPage)
-                .boxed()
-                .collect(Collectors.toList());
-
         ctx.attribute("urls", urls);
         ctx.attribute("urlChecks", urlChecks);
-        ctx.attribute("pages", pages);
-        ctx.attribute("currentPage", currentPage);
+        ctx.attribute("currentPage", page);
+        ctx.attribute("lastPage", lastPage);
         ctx.render("urls/index.html");
         Utils.removeFlashMessage(ctx);
     };
