@@ -15,7 +15,6 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.stream.Collectors;
 
@@ -65,12 +64,14 @@ public class App {
         HikariConfig hikariConfig = new HikariConfig();
         hikariConfig.setJdbcUrl(getJdbcUrl());
         BaseRepository.dataSource = new HikariDataSource(hikariConfig);
-        try (var connection = BaseRepository.dataSource.getConnection();
-             var statement = connection.createStatement()) {
-            File file = new File("src/main/resources/schema.sql");
-            String sql = Files.lines(file.toPath())
-                    .collect(Collectors.joining("\n"));
-            statement.execute(sql);
+        if (getMode().equals("development")) {
+            try (var connection = BaseRepository.dataSource.getConnection();
+                 var statement = connection.createStatement()) {
+                File file = new File("src/main/resources/schema.sql");
+                String sql = Files.lines(file.toPath())
+                        .collect(Collectors.joining("\n"));
+                statement.execute(sql);
+            }
         }
     }
 

@@ -12,12 +12,13 @@ import org.jsoup.nodes.Document;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Optional;
+import java.util.Objects;
 
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 public final class UrlController {
@@ -46,17 +47,22 @@ public final class UrlController {
         int page;
         try {
             page = ctx.queryParamAsClass("page", Integer.class).getOrDefault(1);
-        }catch (Exception exception){
-            page =1;
+        } catch (Exception exception) {
+            page = 1;
         }
         int rowsPerPage = 10;
         int urlsCount = UrlRepository.getEntitiesCount();
 
         int lastPage = urlsCount / rowsPerPage;
-        if (urlsCount % rowsPerPage > 0) lastPage++;
-
-        if (page < 1) page = 1;
-        if (page > lastPage ) page = lastPage;
+        if (urlsCount % rowsPerPage > 0) {
+            lastPage++;
+        }
+        if (page < 1) {
+            page = 1;
+        }
+        if (page > lastPage) {
+            page = lastPage;
+        }
 
         List<Url> urls = UrlRepository.getEntities(rowsPerPage, (page - 1) * 10);
         Map<Url, UrlCheck> urlChecks = new HashMap<>();

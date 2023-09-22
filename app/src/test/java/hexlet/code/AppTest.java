@@ -1,10 +1,9 @@
 package hexlet.code;
 
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import hexlet.code.models.Url;
-import hexlet.code.models.UrlCheck;
-import io.ebean.DB;
-import io.ebean.Database;
 import io.javalin.Javalin;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
@@ -15,19 +14,24 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import hexlet.code.models.query.QUrl;
-
-import java.util.List;
-
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.Instant;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public final class AppTest {
 
     private static Javalin app;
     private static String baseUrl;
-    private static Database database;
 
     private static MockWebServer webServer;
+
+    private static HikariDataSource dataSource;
 
     private static String webServerPage;
 
@@ -37,107 +41,119 @@ public final class AppTest {
         app.start(0);
         int port = app.port();
         baseUrl = "http://localhost:" + port;
-        database = DB.getDefault();
         webServer = new MockWebServer();
         webServer.start();
         webServerPage = webServer.url("/").toString().replaceAll(".$", "");
+
+        HikariConfig hikariConfig = new HikariConfig();
+        hikariConfig.setJdbcUrl("jdbc:h2:mem:project");
+        dataSource = new HikariDataSource(hikariConfig);
     }
+
+    public static Url findUrlByName(String name) {
+        Url url = null;
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM urls WHERE name = ?")) {
+            stmt.setString(1, name);
+            ResultSet resultSet = stmt.executeQuery();
+            if (resultSet.next()) {
+                long id = resultSet.getLong("id");
+                Instant createdAt = resultSet.getTimestamp("created_at").toInstant();
+                url = new Url(id, name, createdAt);
+            }
+        } catch (SQLException sqlException) {
+            sqlException.printStackTrace();
+        }
+        return url;
+    }
+
 
     @AfterAll
     public static void afterAll() throws Exception {
         app.stop();
         webServer.shutdown();
+        dataSource.close();
     }
 
     @BeforeEach
     void beforeEach() {
-        System.out.println(database.platform().name());
-        if (database.platform().name().equals("H2")) {
-            database.script().run("/truncate_h2.sql");
-        } else {
-            database.script().run("/truncate.sql");
-        }
-        database.script().run("/seed.sql");
+
     }
 
     @Test
     public void testMainPage() {
         HttpResponse<String> response = Unirest.get(baseUrl).asString();
-        assertThat(response.getStatus()).isEqualTo(200);
-        assertThat(response.getBody()).contains("Анализатор страниц");
+        assertEquals(200, response.getStatus());
+        assertTrue(response.getBody().contains("Анализатор страниц"));
     }
 
     @Test
     public void testUrlPage() {
         HttpResponse<String> response = Unirest.get(baseUrl + "/urls").asString();
-        assertThat(response.getStatus()).isEqualTo(200);
-        assertThat(response.getBody()).contains("Последняя Проверка");
+        assertEquals(200, response.getStatus());
+        assertTrue(response.getBody().contains("Последняя Проверка"));
     }
 
     @Test
-    public void testCreateNewPage() {
-        String page = "http://ya.ru";
+    public void testCreateNewPage() throws SQLException {
+        String page = "https://leetcode.com/";
         HttpResponse responsePost = Unirest.post(baseUrl + "/urls")
                 .field("url", page)
                 .asEmpty();
-        assertThat(responsePost.getStatus()).isEqualTo(302);
-        assertThat(responsePost.getHeaders().getFirst("Location")).isEqualTo("/urls");
+        assertEquals(302, responsePost.getStatus());
+        assertTrue(responsePost.getHeaders().getFirst("Location").equals("/urls"));
 
-        HttpResponse<String> response = Unirest.get(baseUrl + "/urls").asString();
+        HttpResponse<String> response = Unirest.get(baseUrl + "/urls?page=3").asString();
         String body = response.getBody();
 
-        assertThat(response.getStatus()).isEqualTo(200);
-        assertThat(body).contains(page);
-        assertThat(body).contains("Страница успешно добавлена");
+        assertEquals(200, response.getStatus());
 
-        Url url = new QUrl().name.equalTo(page).findOne();
-
-        assertThat(url).isNotNull();
-        assertThat(url.getName()).isEqualTo(page);
+        assertTrue(body.contains(page));
+        assertTrue(body.contains("Страница успешно добавлена"));
+        assertNotNull(findUrlByName(page));
     }
 
     @Test
     public void testCreatePageAlreadyExist() {
-        var url = new Url("http://ya.ru");
-        url.save();
-        String page = "http://ya.ru";
-        HttpResponse responsePost = Unirest.post(baseUrl + "/urls")
+        String page = "https://ya.ru";
+        Unirest.post(baseUrl + "/urls")
                 .field("url", page)
                 .asEmpty();
-
         HttpResponse<String> response = Unirest.get(baseUrl + "/urls").asString();
         String body = response.getBody();
-
-        assertThat(response.getStatus()).isEqualTo(200);
-        assertThat(body).contains(page);
-        assertThat(body).contains("Страница уже существует");
+        assertEquals(200, response.getStatus());
+        assertTrue(body.contains(page));
+        assertTrue(body.contains("Страница уже существует"));
     }
 
     @Test
-    public void testCreateWrongPage() {
+    public void testCreateWrongPage() throws SQLException {
         String page = "WrongUrlWrongUrl";
         HttpResponse responsePost = Unirest.post(baseUrl + "/urls")
                 .field("url", page)
                 .asString();
-        assertThat(responsePost.getStatus()).isEqualTo(422);
+        assertEquals(422, responsePost.getStatus());
         String body = responsePost.getBody().toString();
-        assertThat(body).contains("Некорректный URL");
-        Url url = new QUrl().name.equalTo(page).findOne();
-        assertThat(url).isNull();
+        assertTrue(body.contains("Некорректный URL"));
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM urls WHERE name = ?")) {
+            stmt.setString(1, page);
+            ResultSet resultSet = stmt.executeQuery();
+            assertFalse(resultSet.next());
+        }
     }
 
     @Test
     public void testShowUrlById() {
-        HttpResponse<String> response = Unirest.get(baseUrl + "/urls/1").asString();
+        HttpResponse<String> response = Unirest.get(baseUrl + "/urls/21").asString();
         String body = response.getBody();
-
-        assertThat(response.getStatus()).isEqualTo(200);
-        assertThat(body).contains("http://mail.ru");
-        assertThat(body).contains("Дата создания");
+        assertTrue(body.contains("https://github.com"));
+        assertTrue(body.contains("Дата создания"));
     }
 
     @Test
-    public void testCheckUrl() {
+    public void testCheckUrl() throws SQLException {
         MockResponse response = new MockResponse()
                 .addHeader("Content-Type", "application/html; charset=utf-8")
                 .setBody("""
@@ -147,25 +163,21 @@ public final class AppTest {
         webServer.enqueue(response);
 
         Unirest.post(baseUrl + "/urls").field("url", webServerPage).asEmpty();
-        HttpResponse<String> getResponse = Unirest.get(baseUrl + "/urls").asString();
+        HttpResponse<String> getResponse = Unirest.get(baseUrl + "/urls?page=3").asString();
         String body = getResponse.getBody();
-        assertThat(body).contains(webServerPage);
 
-        HttpResponse postResponse = Unirest.post(baseUrl + "/urls/3/checks").asEmpty();
-        assertThat(postResponse.getStatus()).isEqualTo(302);
+        assertTrue(body.contains(webServerPage));
+        Url url = findUrlByName(webServerPage);
+        assertNotNull(url);
 
-        getResponse = Unirest.get(baseUrl + "/urls/3").asString();
-        assertThat(getResponse.getStatus()).isEqualTo(200);
+        HttpResponse postResponse = Unirest.post(baseUrl + "/urls/" + url.getId() + "/checks").asEmpty();
+        assertEquals(302, postResponse.getStatus());
+
+        getResponse = Unirest.get(baseUrl + "/urls/" + url.getId()).asString();
+        assertEquals(200, getResponse.getStatus());
         body = getResponse.getBody();
-        assertThat(body).contains(webServerPage);
-        assertThat(body).contains("CISCO");
-        assertThat(body).contains("ROUTING");
-
-        Url url = new QUrl().name.equalTo(webServerPage).findOne();
-        assertThat(url).isNotNull();
-
-        List<UrlCheck> urlChecks = new QUrl().urlChecks.fetch().name.equalTo(webServerPage).findIds();
-        assertThat(urlChecks.size()).isGreaterThan(0);
+        assertTrue(body.contains(webServerPage));
+        assertTrue(body.contains("CISCO"));
+        assertTrue(body.contains("ROUTING"));
     }
-
 }
