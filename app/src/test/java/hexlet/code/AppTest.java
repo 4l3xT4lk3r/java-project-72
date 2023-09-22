@@ -5,6 +5,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import hexlet.code.models.Url;
 import hexlet.code.models.UrlCheck;
+import hexlet.code.repositories.BaseRepository;
 import io.javalin.Javalin;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
@@ -14,6 +15,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
@@ -21,6 +24,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
+import java.util.stream.Collectors;
 
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -52,9 +56,17 @@ public final class AppTest {
                 .setBody(Files.readString(Path.of("src/test/resources/fixtures/index.html")))
                 .setResponseCode(200);
         webServer.enqueue(response);
+
         HikariConfig hikariConfig = new HikariConfig();
         hikariConfig.setJdbcUrl(System.getenv().getOrDefault("JDBC_DATABASE_URL", "jdbc:h2:mem:project"));
         dataSource = new HikariDataSource(hikariConfig);
+        try (var connection = BaseRepository.dataSource.getConnection();
+             var statement = connection.createStatement()) {
+            URL schema = App.class.getClassLoader().getResource("seed.sql");
+            String sql = Files.lines(new File(schema.getFile()).toPath())
+                    .collect(Collectors.joining("\n"));
+            statement.execute(sql);
+        }
     }
 
     public static Url findUrlByName(String name) {

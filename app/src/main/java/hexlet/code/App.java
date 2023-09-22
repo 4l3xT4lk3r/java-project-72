@@ -14,6 +14,7 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.sql.SQLException;
 import java.util.stream.Collectors;
@@ -67,8 +68,9 @@ public class App {
         //if (getJdbcUrl().equals("jdbc:h2:mem:project")) {
         try (var connection = BaseRepository.dataSource.getConnection();
              var statement = connection.createStatement()) {
-            File file = new File("src/main/resources/schema.sql");
-            String sql = Files.lines(file.toPath())
+            //File file = new File("src/main/resources/schema.sql");
+            URL schema = App.class.getClassLoader().getResource("schema.sql");
+            String sql = Files.lines(new File(schema.getFile()).toPath())
                     .collect(Collectors.joining("\n"));
             statement.execute(sql);
         }
