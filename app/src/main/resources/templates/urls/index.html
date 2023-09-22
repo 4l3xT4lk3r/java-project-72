@@ -28,8 +28,17 @@
             <li th:class="'page-item' + ${currentPage <= 1 ? ' disabled' : '' }">
                 <a class="page-link" th:href="@{/urls(page=${currentPage - 1})}">Previous</a>
             </li>
+            <li class="page-item">
+                <form th:action="@{/urls(page=${currentPage})}" method="get">
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" placeholder="введите номер страницы"
+                           name="page" autocomplete="off"
+                           th:value=${currentPage}>
+                </div>
+                </form>
+            </li>
             <li th:class="'page-item' + ${currentPage == lastPage ? ' disabled' : '' }">
-                <a class="page-link" th:href="@{/urls(page=${currentPage + 1},)}">Next</a>
+                <a class="page-link" th:href="@{/urls(page=${currentPage + 1})}">Next</a>
             </li>
         </ul>
     </nav>

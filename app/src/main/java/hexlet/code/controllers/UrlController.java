@@ -43,7 +43,12 @@ public final class UrlController {
     };
 
     public static Handler listUrls = ctx -> {
-        int page = ctx.queryParamAsClass("page", Integer.class).getOrDefault(1);
+        int page;
+        try {
+            page = ctx.queryParamAsClass("page", Integer.class).getOrDefault(1);
+        }catch (Exception exception){
+            page =1;
+        }
         int rowsPerPage = 10;
         int urlsCount = UrlRepository.getEntitiesCount();
 
