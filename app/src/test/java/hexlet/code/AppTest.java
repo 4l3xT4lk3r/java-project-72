@@ -13,6 +13,7 @@ import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
@@ -95,6 +96,7 @@ public final class AppTest {
         }
         return urlCheck;
     }
+
     @AfterAll
     public static void afterAll() throws Exception {
         app.stop();
@@ -195,8 +197,8 @@ public final class AppTest {
 
         UrlCheck urlCheck = findUrlCheckByUrlId(url.getId());
         assertNotNull(urlCheck);
-        assertEquals("ROUTING",urlCheck.getH1());
-        assertEquals("CISCO",urlCheck.getTitle());
-        assertEquals("Multinational digital communications technology conglomerate",urlCheck.getDescription());
+        assertEquals("ROUTING", urlCheck.getH1());
+        assertEquals("CISCO", urlCheck.getTitle());
+        assertEquals("Multinational digital communications technology conglomerate", urlCheck.getDescription());
     }
 }
