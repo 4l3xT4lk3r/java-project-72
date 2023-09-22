@@ -12,12 +12,12 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.extras.java8time.dialect.Java8TimeDialect;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
-import java.io.File;
+//import java.io.File;
 import java.io.IOException;
-import java.net.URL;
-import java.nio.file.Files;
+//import java.net.URL;
+//import java.nio.file.Files;
 import java.sql.SQLException;
-import java.util.stream.Collectors;
+//import java.util.stream.Collectors;
 
 import static io.javalin.apibuilder.ApiBuilder.path;
 import static io.javalin.apibuilder.ApiBuilder.post;
@@ -66,14 +66,14 @@ public class App {
         hikariConfig.setJdbcUrl(getJdbcUrl());
         BaseRepository.dataSource = new HikariDataSource(hikariConfig);
         //if (getJdbcUrl().equals("jdbc:h2:mem:project")) {
-        try (var connection = BaseRepository.dataSource.getConnection();
-             var statement = connection.createStatement()) {
-            //File file = new File("src/main/resources/schema.sql");
-            URL schema = App.class.getClassLoader().getResource("schema.sql");
-            String sql = Files.lines(new File(schema.getFile()).toPath())
-                    .collect(Collectors.joining("\n"));
-            statement.execute(sql);
-        }
+//        try (var connection = BaseRepository.dataSource.getConnection();
+//             var statement = connection.createStatement()) {
+//            //File file = new File("src/main/resources/schema.sql");
+//            URL schema = App.class.getClassLoader().getResource("schema.sql");
+//            String sql = Files.lines(new File(schema.getFile()).toPath())
+//                    .collect(Collectors.joining("\n"));
+//            statement.execute(sql);
+//        }
         //}
     }
 
