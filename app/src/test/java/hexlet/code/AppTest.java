@@ -41,6 +41,7 @@ public final class AppTest {
 
     @BeforeAll
     public static void beforeAll() throws Exception {
+        System.setProperty("JDBC_DATABASE_URL", "jdbc:h2:mem:project");
         app = App.getApp();
         app.start(0);
         int port = app.port();
@@ -83,7 +84,6 @@ public final class AppTest {
             stmt.setLong(1, urlId);
             ResultSet resultSet = stmt.executeQuery();
             if (resultSet.next()) {
-                //long id = resultSet.getLong("id");
                 int statusCode = resultSet.getInt("status_code");
                 String title = resultSet.getString("title");
                 String h1 = resultSet.getString("h1");
@@ -120,7 +120,7 @@ public final class AppTest {
     }
 
     @Test
-    public void testCreateNewPage() throws SQLException {
+    public void testCreateNewPage() {
         String page = "https://leetcode.com";
         HttpResponse responsePost = Unirest.post(baseUrl + "/urls")
                 .field("url", page)
@@ -178,7 +178,7 @@ public final class AppTest {
     }
 
     @Test
-    public void testCheckUrl() throws SQLException {
+    public void testCheckUrl() {
 
 
         Unirest.post(baseUrl + "/urls").field("url", webServerPage).asEmpty();
