@@ -15,6 +15,7 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.stream.Collectors;
 
@@ -23,7 +24,6 @@ import static io.javalin.apibuilder.ApiBuilder.post;
 import static io.javalin.apibuilder.ApiBuilder.get;
 
 public class App {
-
     public static void main(String[] args) {
         getApp().start(getPort());
     }
@@ -37,21 +37,12 @@ public class App {
         return System.getenv().getOrDefault("APP_ENV", "development");
     }
 
-    private static String getJdbcUrl() {
-        return System.getenv().getOrDefault("JDBC_DATABASE_URL", "jdbc:h2:mem:project");
-    }
-
-
-//    private static void setMode() {
-//        System.setProperty("APP_ENV", getMode());
-//    }
-
-    //    private static void setJdbcUrl() {
-//        System.setProperty("JDBC_DATABASE_URL", getJdbcUrl());
-//    }
-//
     private static boolean isProduction() {
         return getMode().equals("production");
+    }
+
+    private static String getJdbcUrl() {
+        return System.getenv().getOrDefault("JDBC_DATABASE_URL", "jdbc:h2:mem:project");
     }
 
     public static void addRoutes(Javalin app) {
@@ -74,43 +65,40 @@ public class App {
         HikariConfig hikariConfig = new HikariConfig();
         hikariConfig.setJdbcUrl(getJdbcUrl());
         BaseRepository.dataSource = new HikariDataSource(hikariConfig);
-        File file = new File("src/main/resources/schema.sql");
-        String sql = Files.lines(file.toPath())
-                .collect(Collectors.joining("\n"));
         try (var connection = BaseRepository.dataSource.getConnection();
              var statement = connection.createStatement()) {
+            File file = new File("src/main/resources/schema.sql");
+            String sql = Files.lines(file.toPath())
+                    .collect(Collectors.joining("\n"));
             statement.execute(sql);
         }
     }
 
     private static TemplateEngine getTemplateEngine() {
         TemplateEngine templateEngine = new TemplateEngine();
-
         ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
         templateResolver.setPrefix("/templates/");
         templateResolver.setCharacterEncoding("UTF-8");
-
         templateEngine.addTemplateResolver(templateResolver);
         templateEngine.addDialect(new LayoutDialect());
         templateEngine.addDialect(new Java8TimeDialect());
-
         return templateEngine;
     }
 
     public static Javalin getApp() {
         try {
             dbInit();
-        }catch (SQLException sqlException){
-            sqlException.printStackTrace();
-        }catch (IOException ioException){
-            ioException.printStackTrace();
+        } catch (Exception exception) {
+            exception.printStackTrace();
         }
-
         Javalin app = Javalin.create(config -> {
             if (!isProduction()) {
                 config.plugins.enableDevLogging();
             }
             JavalinThymeleaf.init(getTemplateEngine());
+        });
+        app.error(404, ctx -> {
+            ctx.render("/404.html");
         });
         addRoutes(app);
         return app;
