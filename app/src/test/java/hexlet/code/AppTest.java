@@ -121,7 +121,7 @@ public final class AppTest {
 
     @Test
     public void testCreateNewPage() throws SQLException {
-        String page = "https://leetcode.com/";
+        String page = "https://leetcode.com";
         HttpResponse responsePost = Unirest.post(baseUrl + "/urls")
                 .field("url", page)
                 .asEmpty();
