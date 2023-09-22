@@ -41,12 +41,10 @@ public final class AppTest {
 
     @BeforeAll
     public static void beforeAll() throws Exception {
-        System.setProperty("JDBC_DATABASE_URL", "jdbc:h2:mem:project");
         app = App.getApp();
         app.start(0);
         int port = app.port();
         baseUrl = "http://localhost:" + port;
-
         webServer = new MockWebServer();
         webServer.start();
         webServerPage = webServer.url("/").toString().replaceAll(".$", "");
@@ -54,9 +52,8 @@ public final class AppTest {
                 .setBody(Files.readString(Path.of("src/test/resources/fixtures/index.html")))
                 .setResponseCode(200);
         webServer.enqueue(response);
-
         HikariConfig hikariConfig = new HikariConfig();
-        hikariConfig.setJdbcUrl("jdbc:h2:mem:project");
+        hikariConfig.setJdbcUrl(System.getenv().getOrDefault("JDBC_DATABASE_URL", "jdbc:h2:mem:project"));
         dataSource = new HikariDataSource(hikariConfig);
     }
 
