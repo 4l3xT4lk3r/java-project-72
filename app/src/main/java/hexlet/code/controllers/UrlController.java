@@ -23,24 +23,28 @@ import org.jsoup.nodes.Element;
 
 public final class UrlController {
     public static Handler createUrl = ctx -> {
+        URL url;
         try {
-            new URL(ctx.formParam("url"));
-            if (UrlRepository.find((ctx.formParam("url"))).isEmpty()) {
-                Url url = new Url(Utils.removePathFromUrl(ctx.formParam("url")));
-                UrlRepository.save(new Url((ctx.formParam("url"))));
-                ctx.sessionAttribute("flash", "Страница успешно добавлена");
-                ctx.sessionAttribute("flashtype", "alert-success");
-            } else {
-                ctx.sessionAttribute("flash", "Страница уже существует");
-                ctx.sessionAttribute("flashtype", "alert-warning");
-            }
-            ctx.redirect("/urls");
+            url = new URL(ctx.formParam("url"));
         } catch (MalformedURLException exception) {
             ctx.status(422);
             ctx.sessionAttribute("flash", "Некорректный URL");
             ctx.sessionAttribute("flashtype", "alert-danger");
             ctx.render("/index.html");
+            return;
         }
+        if (UrlRepository.find((ctx.formParam("url"))).isEmpty()) {
+            //String tmp = Utils.normalizeUrl(new URL(ctx.formParam("url"));
+            //Url url = new Url(tmp);
+            String normalizedUrl = Utils.normalizeUrl(url);
+            UrlRepository.save(new Url(normalizedUrl));
+            ctx.sessionAttribute("flash", "Страница успешно добавлена");
+            ctx.sessionAttribute("flashtype", "alert-success");
+        } else {
+            ctx.sessionAttribute("flash", "Страница уже существует");
+            ctx.sessionAttribute("flashtype", "alert-warning");
+        }
+        ctx.redirect("/urls");
     };
 
     public static Handler listUrls = ctx -> {
