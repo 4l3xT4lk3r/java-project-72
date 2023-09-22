@@ -64,15 +64,15 @@ public class App {
         HikariConfig hikariConfig = new HikariConfig();
         hikariConfig.setJdbcUrl(getJdbcUrl());
         BaseRepository.dataSource = new HikariDataSource(hikariConfig);
-        if (getJdbcUrl().equals("jdbc:h2:mem:project")) {
-            try (var connection = BaseRepository.dataSource.getConnection();
-                 var statement = connection.createStatement()) {
-                File file = new File("src/main/resources/schema.sql");
-                String sql = Files.lines(file.toPath())
-                        .collect(Collectors.joining("\n"));
-                statement.execute(sql);
-            }
+        //if (getJdbcUrl().equals("jdbc:h2:mem:project")) {
+        try (var connection = BaseRepository.dataSource.getConnection();
+             var statement = connection.createStatement()) {
+            File file = new File("src/main/resources/schema.sql");
+            String sql = Files.lines(file.toPath())
+                    .collect(Collectors.joining("\n"));
+            statement.execute(sql);
         }
+        //}
     }
 
     private static TemplateEngine getTemplateEngine() {
