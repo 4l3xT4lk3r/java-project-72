@@ -6,6 +6,8 @@ import com.zaxxer.hikari.HikariDataSource;
 import hexlet.code.models.Url;
 import hexlet.code.models.UrlCheck;
 import hexlet.code.repositories.BaseRepository;
+import hexlet.code.repositories.UrlCheckRepository;
+import hexlet.code.repositories.UrlRepository;
 import io.javalin.Javalin;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
@@ -23,7 +25,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Instant;
 import java.util.stream.Collectors;
 
 
@@ -71,43 +72,6 @@ public final class AppTest {
         }
     }
 
-    public static Url findUrlByName(String name) {
-        Url url = null;
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM urls WHERE name = ?")) {
-            stmt.setString(1, name);
-            ResultSet resultSet = stmt.executeQuery();
-            if (resultSet.next()) {
-                long id = resultSet.getLong("id");
-                Instant createdAt = resultSet.getTimestamp("created_at").toInstant();
-                url = new Url(id, name, createdAt);
-            }
-        } catch (SQLException sqlException) {
-            sqlException.printStackTrace();
-        }
-        return url;
-    }
-
-    public static UrlCheck findUrlCheckByUrlId(long urlId) {
-        UrlCheck urlCheck = null;
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM url_checks WHERE url_id = ? LIMIT 1")) {
-            stmt.setLong(1, urlId);
-            ResultSet resultSet = stmt.executeQuery();
-            if (resultSet.next()) {
-                int statusCode = resultSet.getInt("status_code");
-                String title = resultSet.getString("title");
-                String h1 = resultSet.getString("h1");
-                String description = resultSet.getString("description");
-                Instant createdAt = resultSet.getTimestamp("created_at").toInstant();
-                urlCheck = new UrlCheck(statusCode, title, h1, description, urlId, createdAt);
-            }
-        } catch (SQLException sqlException) {
-            sqlException.printStackTrace();
-        }
-        return urlCheck;
-    }
-
     @AfterAll
     public static void afterAll() throws Exception {
         app.stop();
@@ -123,15 +87,15 @@ public final class AppTest {
     }
 
     @Test
-    public void testUrlPage() {
+    public void testUrlPage() throws SQLException {
         HttpResponse<String> response = Unirest.get(baseUrl + "/urls").asString();
         assertEquals(200, response.getStatus());
-        Url url = findUrlByName("https://ya.ru");
+        Url url = UrlRepository.find("https://ya.ru").get();
         assertTrue(response.getBody().contains(url.getName()));
     }
 
     @Test
-    public void testCreateNewPage() {
+    public void testCreateNewPage() throws SQLException {
         String page = "https://leetcode.com";
         HttpResponse responsePost = Unirest.post(baseUrl + "/urls")
                 .field("url", page)
@@ -146,7 +110,7 @@ public final class AppTest {
 
         assertTrue(body.contains(page));
         assertTrue(body.contains("Страница успешно добавлена"));
-        assertNotNull(findUrlByName(page));
+        assertNotNull(UrlRepository.find(page).get());
     }
 
     @Test
@@ -189,15 +153,13 @@ public final class AppTest {
     }
 
     @Test
-    public void testCheckUrl() {
-
-
+    public void testCheckUrl() throws SQLException {
         Unirest.post(baseUrl + "/urls").field("url", webServerPage).asEmpty();
         HttpResponse<String> getResponse = Unirest.get(baseUrl + "/urls?page=3").asString();
         String body = getResponse.getBody();
 
         assertTrue(body.contains(webServerPage));
-        Url url = findUrlByName(webServerPage);
+        Url url = UrlRepository.find(webServerPage).get();
         assertNotNull(url);
 
         HttpResponse postResponse = Unirest.post(baseUrl + "/urls/" + url.getId() + "/checks").asEmpty();
@@ -206,7 +168,7 @@ public final class AppTest {
         getResponse = Unirest.get(baseUrl + "/urls/" + url.getId()).asString();
         assertEquals(200, getResponse.getStatus());
 
-        UrlCheck urlCheck = findUrlCheckByUrlId(url.getId());
+        UrlCheck urlCheck = UrlCheckRepository.findLastCheck(url.getId()).get();
         assertNotNull(urlCheck);
         assertEquals("ROUTING", urlCheck.getH1());
         assertEquals("CISCO", urlCheck.getTitle());

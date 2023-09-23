@@ -10,8 +10,9 @@
 ## Requirements
 
 * JDK 20
-* Gradle 8.2
+* Gradle 8.3
 * GNU Make
+* H2/PostgreSQL
 
 ## Preparation
 
@@ -21,14 +22,18 @@ cd app
 ```
 
 ## Run test server
-
-```bash
-make run-dev
-# Open in browser http://localhost:8080
-```
+1. Set environment variable PORT. For example - `export PORT=8080`
+1. ```bash
+   make run-dev
+   ```
+1. Open in browser http://127.0.0.1:PORT
 
 ## Run prod server
 
-```bash
-make run-prod
-```
+1. Import schema from `app/src/main/resources/schema.sql` to your database.
+1. Set environment variable JDBC_DATABASE_URL. For example - `export JDBC_DATABASE_URL=jdbc:postgresql://db:5432/postgres?password=password&user=postgres`
+1. Set environment variable PORT. For example - `export PORT=8080`
+1. ```bash
+   make run-prod
+   ```
+1. Open in browser http://127.0.0.1:PORT
