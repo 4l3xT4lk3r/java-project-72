@@ -45,6 +45,7 @@ public final class AppTest {
 
     @BeforeAll
     public static void beforeAll() throws Exception {
+        System.setProperty("APP_ENV", "development");
         app = App.getApp();
         app.start(0);
         int port = app.port();
@@ -59,6 +60,7 @@ public final class AppTest {
 
         HikariConfig hikariConfig = new HikariConfig();
         hikariConfig.setJdbcUrl(System.getenv().getOrDefault("JDBC_DATABASE_URL", "jdbc:h2:mem:project"));
+
         dataSource = new HikariDataSource(hikariConfig);
         try (var connection = BaseRepository.dataSource.getConnection();
              var statement = connection.createStatement()) {

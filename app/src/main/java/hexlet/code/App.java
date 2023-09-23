@@ -65,7 +65,7 @@ public class App {
         HikariConfig hikariConfig = new HikariConfig();
         hikariConfig.setJdbcUrl(getJdbcUrl());
         BaseRepository.dataSource = new HikariDataSource(hikariConfig);
-        if (getJdbcUrl().equals("jdbc:h2:mem:project")) {
+        if (getMode().equals("development")) {
             try (var connection = BaseRepository.dataSource.getConnection();
                  var statement = connection.createStatement()) {
                 URL schema = App.class.getClassLoader().getResource("schema.sql");
