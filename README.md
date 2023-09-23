@@ -5,7 +5,7 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/170b31e5c042efef6da1/maintainability)](https://codeclimate.com/github/4l3xT4lk3r/java-project-72/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/170b31e5c042efef6da1/test_coverage)](https://codeclimate.com/github/4l3xT4lk3r/java-project-72/test_coverage)  
 
-[Deno on Render](https://page-analyzer-6gcp.onrender.com/)
+[Demo on Render](https://page-analyzer-6gcp.onrender.com/)
 
 ## Requirements
 
