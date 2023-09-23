@@ -34,8 +34,6 @@ public final class UrlController {
             return;
         }
         if (UrlRepository.find((ctx.formParam("url"))).isEmpty()) {
-            //String tmp = Utils.normalizeUrl(new URL(ctx.formParam("url"));
-            //Url url = new Url(tmp);
             String normalizedUrl = Utils.normalizeUrl(url);
             UrlRepository.save(new Url(normalizedUrl));
             ctx.sessionAttribute("flash", "Страница успешно добавлена");
@@ -58,7 +56,7 @@ public final class UrlController {
         int urlsCount = UrlRepository.getEntitiesCount();
 
         int lastPage = urlsCount / rowsPerPage;
-        if (urlsCount % rowsPerPage > 0) {
+        if (urlsCount % rowsPerPage > 0 || lastPage == 0) {
             lastPage++;
         }
         if (page < 1) {
